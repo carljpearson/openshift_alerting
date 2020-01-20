@@ -1,9 +1,11 @@
 library(tidyverse)
 
-data <- read_csv("/Users/carlpearson/Documents/r_github/openshift_alerting/alert_1_7_col.csv",
+data <- read_csv("/Users/carlpearson/Documents/r_github/openshift_alerting/alert_1_15_col.csv",
                  col_names = T)
 
+#removing bad responses
 df <- data[3:nrow(data),]
+
 
 df <- df %>% 
   filter(Status=="IP Address",
@@ -14,9 +16,12 @@ df <- df %>%
   separate(exp, into = c("exp","drop_me"),sep=" – ") %>%
   select(-drop_me) 
 
-
+#recording factors
 df$exp <- factor(df$exp, levels = c("None","Basic","Intermediate","Advanced","Expert"))
 
+df$use <- factor(df$use, levels = c("Less than once","1-2 times", "3-5 times", "6-10 times","11+ times", "I'm not sure"))
+
+#creating long format df
 df_long <- df %>%
   select(id,
          contains("-conf"),
@@ -45,17 +50,22 @@ df_long <- df %>%
       conf == "Very unconfident" ~ 1
                           ),
     conf=as.numeric(as.character(conf)),
+    alert_number = paste0("alert_",alert_number),
     click_time_Last=as.numeric(as.character(click_time_Last)),
-    click_time_First=as.numeric(as.character(click_time_First))
+    click_time_First=as.numeric(as.character(click_time_First)),
+    click_1_y=as.numeric(click_1_y),
+    click_1_x=as.numeric(click_1_x),
+    conf_cat = case_when(
+      conf == 7 ~ "high",
+      conf == 6 ~ "high",
+      conf == 5 ~ "mid",
+      conf == 4 ~ "mid",
+      conf == 3 ~ "lo",
+      conf == 2 ~ "lo",
+      conf == 1 ~ "lo")
     )
 
-
-
-#df_long$click[df_long$click=="Events" & df_long$click_1_x > 500] <- "Events Activity"
-
-#df_long$click <- if(df_long$click=="Events" & df_long$click_1_x > 500){"Events Activity"} else {df_long$click}
-
-
+#creating higher level categories for heatmap
 area_key <- tibble(click=c("Home","Dashboards","Projects","Search","Explore","Events","Catalog","Workloads","Networking","Storage","Builds","Monitoring","Compute","Administration",
                            "Inv - Projects","Inv - Nodes","Inv - Pods","Inv - VMs","Inv - Storage Classes","Inv - PVCs","Inv - Disks",
                            "View Events", "Events Activity",
@@ -81,6 +91,202 @@ area_key <- tibble(click=c("Home","Dashboards","Projects","Search","Explore","Ev
 
 df_long <- df %>% select(id,exp) %>% right_join(df_long)
 
+#reading in alert names
+alert_name_key <- read_csv("/Users/carlpearson/Documents/r_github/openshift_alerting/alert_name_key.csv",
+                 col_names = T)
+
+df_long <- df_long %>% left_join(alert_name_key)
+
+#l1 analysis
+
+#expertise
+df %>%
+  ggplot(aes(exp)) +
+  geom_bar() +
+  geom_text(stat = 'count',aes(label =..count.., vjust = -0.2),size=7) +
+  ggthemes::theme_tufte(base_family="sans",base_size = 15) +
+  labs(y="Count",
+       x="Expertise") +
+  theme(
+        axis.title.x=element_blank(),
+        axis.text.x= element_text(size=15),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/exp.png",bg="transparent",width = 8,height = 6)
+
+#use
+df %>%
+  ggplot(aes(use)) +
+  geom_bar() +
+  geom_text(stat = 'count',aes(label =..count.., vjust = -0.2),size=7) +
+  ggthemes::theme_tufte(base_family="sans",base_size = 15) +
+  labs(y="Count",
+       x="Weekly Use") +
+  theme(
+    axis.text.x= element_text(size=15),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank())
+
+ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/use.png",bg="transparent",width = 8,height = 6)
+
+#version
+  df %>%
+    select(id,contains("vers")) %>%
+    pivot_longer(-id) %>%
+    mutate(name = case_when(
+      name == "vers_1" ~ "3.9 or earlier",
+      name == "vers_2" ~ "3.10",
+      name == "vers_3" ~ "3.11",
+      name == "vers_4" ~ "4.0",
+      name == "vers_5" ~ "4.1",
+      name == "vers_6" ~ "4.2",
+    ),
+    name = factor(name, levels = c("3.9 or earlier","3.10", "3.11","4.0","4.1","4.2")),
+    value = factor(value, levels = c("Have not used","Used in demo","Little experience","Some experience","Lots of experience"))
+    ) %>%
+    ggplot(aes(name,fill=value)) +
+    geom_bar() +
+    geom_text(stat = 'count',aes(label =..count.., y=..count..),size=7,position = position_stack(vjust = .5),color="#585858") +
+    ggthemes::theme_tufte(base_family="sans",base_size = 15) +
+    labs(y="Count",
+         x="Version",
+         fill="Use") +
+    theme(
+      axis.text.x= element_text(size=15),
+      axis.text.y=element_blank(),
+      axis.ticks.y=element_blank())
+
+  #version external
+  df %>%
+    filter(rh=="No, I'm not a Red Hat employee.") %>%
+    select(id,contains("vers")) %>%
+    pivot_longer(-id) %>%
+    mutate(name = case_when(
+      name == "vers_1" ~ "3.9 or earlier",
+      name == "vers_2" ~ "3.10",
+      name == "vers_3" ~ "3.11",
+      name == "vers_4" ~ "4.0",
+      name == "vers_5" ~ "4.1",
+      name == "vers_6" ~ "4.2",
+    ),
+    name = factor(name, levels = c("3.9 or earlier","3.10", "3.11","4.0","4.1","4.2")),
+    value = factor(value, levels = c("Have not used","Used in demo","Little experience","Some experience","Lots of experience"))
+    ) %>%
+    ggplot(aes(name,fill=value)) +
+    geom_bar() +
+    geom_text(stat = 'count',aes(label =..count.., y=..count..),size=7,position = position_stack(vjust = .5),color="#585858") +
+    ggthemes::theme_tufte(base_family="sans",base_size = 15) +
+    labs(y="Count",
+         x="Version",
+         fill="Use",
+         caption="Customers only") +
+    theme(
+      axis.text.x= element_text(size=15),
+      axis.text.y=element_blank(),
+      axis.ticks.y=element_blank())
+
+#alert env
+  
+df %>%
+  mutate(
+    env = gsub("personal,","personal;",env),
+    env = gsub("sandbox,","sandbox;",env)
+  ) %>%
+  separate(env,sep = ",",into = paste0("env_",1:6)) %>%
+  select(id,contains("env_"),contains("reso_"),-contains("TEXT")) %>%
+  pivot_longer(-id) %>%
+  separate(name,into = c("var","num"),sep="_")  %>%
+  mutate(num2 = case_when(
+    var == "env" & value == "A personal; sandbox; or test environment" ~ 1,
+    var == "env" & value == "My or my team's development cluster" ~ 2,
+    var == "env" & value == "My company's production cluster" ~ 3,
+    var == "env" & value == "A different company's production cluster (I provide support to their users)" ~ 4,
+    var == "env" & value == "I don't view/receive alerts" ~ 5,
+    var == "env" & value == "Other" ~ 6,
+    var == "reso" & num == 1 ~ 1,
+    var == "reso" & num == 2 ~ 2,
+    var == "reso" & num == 3 ~ 3,
+    var == "reso" & num == 4 ~ 4,
+    var == "reso" & num == 5 ~ 5,
+    var == "reso" & num == 6 ~ 6
+    
+  )) %>%
+  na.omit(num2) %>%
+  select(-num) %>%
+  pivot_wider(names_from = "var", values_from = "value") %>%
+  filter(num2!=5) %>%
+  ggplot(aes(env,fill=reso)) +
+  geom_bar() +
+  geom_text(stat = 'count',aes(label =..count.., y=..count..),size=7,position = position_stack(vjust = .5),color="#585858") +
+  ggthemes::theme_tufte(base_family="sans",base_size = 15) +
+  labs(y="Count",
+       x="Do you have to resolve alerts?",
+       fill="Use",
+       caption="Customers only") +
+  coord_flip()
+  
+
+#channel
+df %>%
+  separate(channel,into = paste0("channel_",1:5),sep=",") %>%
+  select(id,contains("channel_"),use) %>%
+  pivot_longer(cols=contains("channel_")) %>%
+  rename(Weekly_Use = use) %>%
+  na.omit(value) %>%
+  ggplot((aes(value)),fill=Weekly_Use) +
+  geom_bar() +
+  geom_text(stat = 'count',aes(label =..count.., y=..count..+1),size=7) +
+  ggthemes::theme_tufte(base_family="sans",base_size = 15) +
+  labs(y="Count",
+       x="Version",
+       fill="Use",
+       caption="Customers only") +
+  theme(
+    axis.text.x=element_blank(),
+    axis.title.y = element_blank(),
+    axis.ticks.x=element_blank()) +
+  coord_flip()
+  
+  
+
+
+#analysis
+
+
+
+
+
+df_long %>%
+  group_by(alert_name) %>%
+  summarise(conf_avg=mean(conf),conf_sd=sd(conf))
+df_long %>%
+  select(conf,click_time_Last,click_count,alert_name) %>%
+  psych::describeBy(group = "alert_name")
+
+df_long_mod <- df_long %>% filter(exp != "None")
+
+#confidence model
+mod_conf <- lmerTest::lmer(conf ~ alert_name  + (1|id),
+               data=df_long_mod)
+
+sjPlot::tab_model(mod_conf)
+sjPlot::plot_model(mod_conf,type="eff") 
+
+#confidence + experience model
+mod_conf_exp <- lmerTest::lmer(conf ~ exp * alert_name + (1|id),
+                           data=df_long)
+
+sjPlot::tab_model(mod_conf,mod_conf_exp)
+sjPlot::plot_model(mod_conf_exp,type="int",grid=T,colors = rep(c("#ee0000","#000000"))) + 
+  ggthemes::theme_tufte(base_family = "sans") + geom_line() +
+  labs(title = "Confidence values",
+       y="Confidence",
+       x="Experience levels")
+
+
+
+#click location 
 
 df_long %>%
   group_by(exp) %>%
@@ -113,14 +319,76 @@ df_long %>%
   ggthemes::theme_tufte(base_family = "sans")
 
 
+images <- as.data.frame(list.files("/Users/carlpearson/Documents/r_github/openshift_alerting/img/"))
+colnames(images) <- "images"
+images <- images %>%
+  mutate(path="/Users/carlpearson/Documents/r_github/openshift_alerting/img/") %>%
+  unite(img,c("path","images"),sep="")
+
+img_p <- png::readPNG(images[2,1])
+
 df_long %>%
-  mutate(click_1_y=as.numeric(click_1_y),
-         click_1_x=as.numeric(click_1_x)
-         ) %>%
-  ggplot(aes(y=-click_1_y,x=click_1_x,color=exp)) +
-  geom_point() +
-  scale_color_brewer(type="seq")
+ filter(alert_number=="alert_2") %>%
+  mutate(
+    click_1_y = dim(img_p)[1] - click_1_y
+  ) %>%
+  ggplot(aes(click_1_x,click_1_y))  + 
+  annotation_raster(img_p, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+  stat_density2d(geom = "polygon", aes(fill=..level..),alpha=.1) + 
+  geom_point(size=2,shape=10)+
+  scale_fill_gradient(low="green",high="red") + 
+  scale_x_continuous(limits=c(0,dim(img_p)[2]),expand=c(0,0))+
+  scale_y_continuous(limits=c(0,dim(img_p)[1]),expand=c(0,0))+
+  coord_fixed() +
+  theme_void() 
+
+#loop for heatmaps
+for(i in 1:11) {
   
+  img_p <- png::readPNG(images[i,1])
   
+df_long %>%
+   filter(alert_number==paste0("alert_",i)) %>%
+    mutate(
+      click_1_y = dim(img_p)[1] - click_1_y
+                      ) %>%
+    ggplot(aes(click_1_x,click_1_y))  + 
+    annotation_raster(img_p, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+    stat_density2d(geom = "polygon", aes(fill=..level..),alpha=.1) + 
+    geom_point(size=2,shape=4,color="red")+
+    scale_fill_gradient(low="green",high="red") + 
+    scale_x_continuous(limits=c(0,dim(img_p)[2]),expand=c(0,0))+
+    scale_y_continuous(limits=c(0,dim(img_p)[1]),expand=c(0,0))+
+    coord_fixed() +
+    theme_void() +
+    theme(legend.position = "none")
+
   
-  
+ggsave(paste0("/Users/carlpearson/Documents/r_github/openshift_alerting/heatmaps/alert_",i,".png"),width = 10.05,height = 6,bg="transparent")
+
+}
+
+
+#experience heatmap
+img_p <- png::readPNG(images[1,1])
+
+df_long %>%
+  mutate(
+    click_1_y = dim(img_p)[1] - click_1_y
+  ) %>%
+  ggplot(aes(click_1_x,click_1_y))  + 
+  annotation_raster(img_p, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+  stat_density2d(geom = "polygon", aes(fill=..level..),alpha=.1) + 
+  geom_point(size=2,shape=4,color="red")+
+  scale_fill_gradient(low="green",high="red") + 
+  scale_x_continuous(limits=c(0,dim(img_p)[2]),expand=c(0,0))+
+  scale_y_continuous(limits=c(0,dim(img_p)[1]),expand=c(0,0))+
+  coord_fixed() +
+  theme_void() +
+  theme(legend.position = "none") +
+  facet_wrap(~exp)
+
+
+ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/heatmaps/experience.png",width = 10.05,height = 6,bg="transparent")
+
+
