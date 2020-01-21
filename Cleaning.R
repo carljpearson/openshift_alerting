@@ -55,14 +55,16 @@ df_long <- df %>%
     click_time_First=as.numeric(as.character(click_time_First)),
     click_1_y=as.numeric(click_1_y),
     click_1_x=as.numeric(click_1_x),
-    conf_cat = case_when(
+    conf_cat = 
+      case_when(
       conf == 7 ~ "high",
       conf == 6 ~ "high",
       conf == 5 ~ "mid",
       conf == 4 ~ "mid",
       conf == 3 ~ "lo",
       conf == 2 ~ "lo",
-      conf == 1 ~ "lo")
+      conf == 1 ~ "lo"),
+    conf_cat = factor(conf_cat, levels = c("lo","mid","high"))
     )
 
 #creating higher level categories for heatmap
@@ -262,7 +264,7 @@ df_long %>%
   summarise(conf_avg=mean(conf),conf_sd=sd(conf))
 df_long %>%
   select(conf,click_time_Last,click_count,alert_name) %>%
-  psych::describeBy(group = "alert_name")
+  psych::describeBy(group = "alert_name") 
 
 df_long_mod <- df_long %>% filter(exp != "None")
 
@@ -303,26 +305,17 @@ df_long %>%
   geom_text(aes(exp, click,label=paste0("n=",n,", ","p=",prop)),color="white") +
   ggthemes::theme_tufte(base_family = "sans")
 
-df_long %>%
-  group_by(exp) %>%
-  summarize(total=n()) %>%
-  right_join(df_long,by="exp") %>%
-  left_join(area_key) %>%
-  group_by(exp,area,total) %>%
-  count() %>%
-  mutate(prop=round(n/total,2)) %>%
-  arrange(-prop) %>%
-  na.omit() %>%
-  ggplot(aes(exp, area, fill= prop)) + 
-  geom_tile() +
-  geom_text(aes(exp, area,label=paste0("n=",n,", ","p=",prop)),color="white") +
-  ggthemes::theme_tufte(base_family = "sans")
+
 
 
 images <- as.data.frame(list.files("/Users/carlpearson/Documents/r_github/openshift_alerting/img/"))
 colnames(images) <- "images"
 images <- images %>%
   mutate(path="/Users/carlpearson/Documents/r_github/openshift_alerting/img/") %>%
+  separate(col = images, into = c("number","drop"),remove = F,sep="-") %>%
+  mutate(number=as.numeric(number)) %>%
+  arrange(number) %>%
+  select(images,path) %>%
   unite(img,c("path","images"),sep="")
 
 img_p <- png::readPNG(images[2,1])
@@ -390,5 +383,149 @@ df_long %>%
 
 
 ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/heatmaps/experience.png",width = 10.05,height = 6,bg="transparent")
+
+
+img_p <- png::readPNG(images[1,1])
+
+df_long %>%
+  mutate(
+    click_1_y = dim(img_p)[1] - click_1_y
+  ) %>%
+  ggplot(aes(click_1_x,click_1_y))  + 
+  annotation_raster(img_p, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+  stat_density2d(geom = "polygon", aes(fill=..level..),alpha=.1) + 
+  geom_point(size=2,shape=4,color="red")+
+  scale_fill_gradient(low="green",high="red") + 
+  scale_x_continuous(limits=c(0,dim(img_p)[2]),expand=c(0,0))+
+  scale_y_continuous(limits=c(0,dim(img_p)[1]),expand=c(0,0))+
+  coord_fixed() +
+  theme_void() +
+  theme(legend.position = "none") +
+  facet_wrap(~conf_cat,ncol=2)
+
+ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/heatmaps/conf.png",width = 10.05,height = 6,bg="transparent")
+
+zval=1.64
+
+#area proportions
+df_long %>%
+  group_by(alert_name) %>%
+  summarize(total=n()) %>%
+  right_join(df_long,by="alert_name") %>%
+  left_join(area_key) %>%
+  group_by(area,total,alert_name) %>%
+  count() %>%
+  mutate(
+        count = n,
+        n=total, #rename
+          prop = count / total, #get cis
+         
+         prop = count / n, #exact proportion from succesess/trials
+         laplace = (count + 1) / (n + 2), #laplace point estimate
+         p_adj = (n * prop + (zval * zval) / 2) / (n + (zval * zval)), #adjust p for wald calculation
+         n_adj = n + (zval * zval), #adjust n for wald calculation
+         marg =  zval * sqrt(p_adj * (1 - p_adj) / n_adj), #wald margin value
+         lowerci = p_adj - marg, #lower wald ci
+         lowerci = ifelse(lowerci <= 0, 0, lowerci), #keep lower ci above 0
+         upperci = p_adj + marg, #upper wald ci
+         upperci = ifelse(upperci >= 1, 1, upperci)) %>% #keep upper ci below 1
+  arrange(-prop) %>%
+  na.omit() %>%
+  ggplot(aes(y=prop,x= area, fill= area)) + 
+  geom_bar(stat="identity",position=position_dodge()) +
+  geom_errorbar(aes(ymin=lowerci,ymax=upperci),color="darkgray",position="dodge") + #add adjusted wald CIs
+  ggthemes::theme_tufte(base_family = "sans") + 
+  theme(
+    axis.text.x = element_text(angle = 45,hjust = 1)
+    
+  ) +
+  facet_wrap(~alert_name)
+
+
+
+
+#loop for combo
+for(i in 1:11) {
+  
+  img_p <- png::readPNG(images[i,1])
+  
+p1  <- df_long %>%
+    filter(alert_number==paste0("alert_",i)) %>%
+    mutate(
+      click_1_y = dim(img_p)[1] - click_1_y
+    ) %>%
+    ggplot(aes(click_1_x,click_1_y))  + 
+    annotation_raster(img_p, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+    stat_density2d(geom = "polygon", aes(fill=..level..),alpha=.1) + 
+    geom_point(size=2,shape=4,color="red")+
+    scale_fill_gradient(low="green",high="red") + 
+    scale_x_continuous(limits=c(0,dim(img_p)[2]),expand=c(0,0))+
+    scale_y_continuous(limits=c(0,dim(img_p)[1]),expand=c(0,0))+
+    coord_fixed() +
+    theme_void() +
+    theme(legend.position = "none")
+  
+  
+  p2 <- df_long %>%
+    group_by(alert_name) %>%
+    summarize(total=n()) %>%
+    right_join(df_long,by="alert_name") %>%
+    left_join(area_key) %>%
+    group_by(area,total,alert_number) %>%
+    count() %>%
+    mutate(
+      count = n,
+      n=total, #rename
+      prop = count / total, #get cis
+      
+      prop = count / n, #exact proportion from succesess/trials
+      laplace = (count + 1) / (n + 2), #laplace point estimate
+      p_adj = (n * prop + (zval * zval) / 2) / (n + (zval * zval)), #adjust p for wald calculation
+      n_adj = n + (zval * zval), #adjust n for wald calculation
+      marg =  zval * sqrt(p_adj * (1 - p_adj) / n_adj), #wald margin value
+      lowerci = p_adj - marg, #lower wald ci
+      lowerci = ifelse(lowerci <= 0, 0, lowerci), #keep lower ci above 0
+      upperci = p_adj + marg, #upper wald ci
+      upperci = ifelse(upperci >= 1, 1, upperci)) %>% #keep upper ci below 1
+    arrange(-prop) %>%
+    na.omit() %>%
+    filter(alert_number==paste0("alert_",i)) %>%
+    ggplot(aes(y=prop,x= area, fill= area)) + 
+    geom_bar(stat="identity",position=position_dodge()) +
+    geom_errorbar(aes(ymin=lowerci,ymax=upperci),color="darkgray",position="dodge") + #add adjusted wald CIs
+    ggthemes::theme_tufte(base_family = "sans") + 
+    theme(
+      axis.text.x = element_text(angle = 45,hjust = 1)
+      
+    ) +
+    theme(legend.position = "none") +
+    labs(y="Proportion",x="Click region")
+  
+  p3 <- df_long %>%
+    filter(alert_number==paste0("alert_",i)) %>%
+    select(conf,id,exp) %>%
+    ggplot(aes(x=exp,y=conf,fill=exp)) +
+    geom_violin() +
+    geom_point(position = position_jitter(width = .05),alpha=.5) +
+    ggthemes::theme_tufte(base_family = "sans") +
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 45,hjust = 1)) +
+    labs(y="Confidence responses",x="Expertise")
+  
+  p = grid::rectGrob()
+  p <- gridExtra::grid.arrange(p1,p2, p3,
+                                layout_matrix = rbind(
+                                  c(1,1,1,2), 
+                                  c(1,1,1,3))
+                                
+  )
+  
+  ggsave(paste0("/Users/carlpearson/Documents/r_github/openshift_alerting/heatmaps/multi_",i,".png"),
+         p,
+         width = 10,height = 5)
+  
+  
+}
+
 
 
