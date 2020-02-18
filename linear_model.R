@@ -17,9 +17,7 @@ mod_conf <- lmerTest::lmer(conf ~ alert_name   + (1|id),
 sjPlot::tab_model(mod_conf) -> test
 sjPlot::plot_model(mod_conf, type="eff",wrap.labels = 10) 
 
-df_long %>%
-  ggplot(aes(y=conf,x=alert_name,fill=alert_name)) +
-  geom_bar(identity=stat_function(fun="mean"))
+
 
 #confidence + experience model
 mod_conf_exp <- lmerTest::lmer(conf ~ exp * alert_name + (1|id),
