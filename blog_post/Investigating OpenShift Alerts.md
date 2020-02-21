@@ -36,7 +36,7 @@ The confidence ratings separated the alerts into *high confidence* alerts and *l
 
 ![](https://raw.githubusercontent.com/carljpearson/openshift_alerting/master/plots/conf_viol2.png)
 
-Because of the high variation within ratings, it's difficult to point to a certain alert as 'good' or 'bad'. Our qualitative data will help provide more insight here.
+Because of the high variation within ratings, it was difficult to point to a certain alert as 'good' or 'bad'. Our qualitative data helped provide more insight here.
 
 #### Confidence explanations and what makes an alert (not) useful
 
@@ -50,13 +50,13 @@ It was unclear what was driving some alerts to be statistically higher while als
 
 This is corraborated by statistically lower alerts for some resource types (generally non-`pod` resources). While the OpenShift team does not have control over vanilla kubernetes alerts, we could take special care in our web console for a specific subset of resources and set our users up for faster success in resolving an alert.
 
-Outside of general or resource-related experience levels, many indicated what an alert *not* useful. The *root cause* theme came up when participant indicated they wanted to be taken to the root cause of the issue or that it was unclear what is causing the issue. 
+Outside of general OpenShift or resource-related experience levels, many comments indicated what makes an alert *not* useful. The *root cause* theme came up when participant indicated they wanted to be taken to the root cause of the issue or that it was unclear what is causing the issue. 
 
 *Verbatim*
 
 ``` I would hope to find info on why it was stuck:  not enough nodes with the correct nodeselector, no available nodes with appropriate resources etc.```
 
-While easier said than done, participants want to be taken right to the fix rather than the alert itself. 
+While easier said than done, participants wanted to be taken right to the fix rather than the alert itself. 
 
 ## Click Maps
 
