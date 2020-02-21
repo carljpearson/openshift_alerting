@@ -40,6 +40,24 @@ The bulk of participants' version experience was with 3.x versions, but there we
 
 ## Confidence
 
-The confidence ratings separated the alerts into *high confidence* alerts and *low confidence* alerts in general. However, through a linear-mixed model, some diagnostics indicated that the scores in any particular alert varied quite a lot depending on the individual rating their confidence (the intraclass correlation is near 50%). So while in aggregate some alerts leave users feeling more confident, this will heavily depend on user characteristics, such as expertise. 
+The confidence ratings separated the alerts into *high confidence* alerts and *low confidence* alerts in general. However, through a linear-mixed model, some diagnostics indicated that the scores in any particular alert varied quite a lot depending on the individual rating their confidence (the intraclass correlation is near 50%). So while in aggregate some alerts leave users feeling more confident, this will heavily depend on user characteristics, such as expertise. You can see below that every alert had scores than ranged across the spectrum of 1-7.
 
 ![](https://raw.githubusercontent.com/carljpearson/openshift_alerting/master/plots/conf_viol.png)
+
+## Click Maps
+
+The behaviors were similar to confidence ratings: responses depended heavily on the user. However, one obvious case was that the 'View Details' link was often the first click.
+
+![](https://raw.githubusercontent.com/carljpearson/openshift_alerting/master/heatmaps/all.png)
+
+This changed somewhat when split out by experience levels, where expert users tended to use the sidebar (navigation menu) slightly more often. This difference was not statistically significant. 
+
+![](https://github.com/carljpearson/openshift_alerting/blob/master/heatmaps/all_exp.png?raw=true)
+
+While interesting to investigate, click maps are imprecise for parsing out statistical patterns in the click data. The data below splot out the major sections of the web console interface to compare proportions of click behaviors. The alerts `CPUThrottlingHigh`, `KubletDown`, `KubePodCrashLooping`, `KubePodNotReady`, and `MachineRunningWithNoPhase` do not have Status (where the 'View Details' button is located) as the most significantly clicked area. This is inferred where the confidence intervals (gray bars) of the purple Status bar overlap with the confidence intervals of another area. Why might this be the case?  For this we need to dig into the open (write-in) response data.
+
+![](https://github.com/carljpearson/openshift_alerting/blob/master/plots/click_area_all.png?raw=true)
+
+## Open Response Data
+
+We collected over 200 comments and thematically coded the responses to uncover any patterns that were present. One major theme that arose in the data was related to participants indicating they knew where they wanted to go and/or what specifically they wanted to resolve. After a bit of backtracking, all of these comments

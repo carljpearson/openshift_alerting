@@ -2,7 +2,7 @@
 
 df_long %>%
   group_by(alert_name) %>%
-  summarise(conf_avg=mean(conf),conf_sd=sd(conf))
+  summarise(conf_avg=mean(conf),conf_sd=sd(conf),se=sd*sqrt(nrow(dflo))*1.96)
 df_long %>%
   select(conf,click_time_Last,click_count,alert_name) %>%
   psych::describeBy(group = "alert_name") 

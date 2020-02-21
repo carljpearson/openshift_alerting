@@ -137,4 +137,4 @@ df_long_region <- df_long %>%
   left_join(area_key)
 
 
-
+write_csv(df_long,"/Users/carlpearson/Documents/r_github/openshift_alerting/do_not_upload/df_long.csv")

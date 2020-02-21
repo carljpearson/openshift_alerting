@@ -253,7 +253,7 @@ df_long %>%
     axis.title.y = element_blank()
   ) + 
   coord_flip(ylim=c(1,7)) +
-  labs(x="Confidence")
+  labs(y="Confidence")
 
 ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/conf_viol.png",width = 12,height = 8)
 
@@ -461,7 +461,7 @@ for(i in 1:11) {
     filter(alert_number==paste0("alert_",i)) %>%
     ggplot(aes(y=prop,x= area, fill= area)) + 
     geom_bar(stat="identity",position=position_dodge()) +
-    geom_errorbar(aes(ymin=lowerci,ymax=upperci),color="darkgray",position="dodge") + #add adjusted wald CIs
+    geom_errorbar(aes(ymin=lowerci,ymax=upperci),color="black",position="dodge",width=.5) + #add adjusted wald CIs
     ggthemes::theme_tufte(base_family = "sans") + 
     theme(
       axis.text.x = element_text(angle = 45,hjust = 1)
@@ -526,7 +526,7 @@ df_long %>%
   na.omit() %>%
   ggplot(aes(y=prop,x= click,fill=click)) + 
   geom_bar(stat="identity",position=position_dodge()) +
-  geom_errorbar(aes(ymin=lowerci,ymax=upperci),color="darkgray",position="dodge") + #add adjusted wald CIs
+  geom_errorbar(aes(ymin=lowerci,ymax=upperci),color="black",position="dodge",width=.5) + #add adjusted wald CIs
   ggthemes::theme_tufte(base_family = "sans") + 
   theme(
     axis.text.x = element_text(angle = 45,hjust = 1),
