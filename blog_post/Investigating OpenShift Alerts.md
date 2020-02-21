@@ -20,9 +20,9 @@ Monitoring is a critical aspect of architecting and maintaining a successful Ope
 - **etcdHighCommitDurations** etcd cluster "etcd": 99th percentile commit durations 100s on etcd instance cluster-health.
 - **ClusterOperatorDegraded** Cluster operator insights has been degraded for 10 mins. Operator is degraded because Unable to report: gateway server reported unexpected error code: 415, and cluster upgrades will be unstable.
 
-We used an online survey platform, *Qualtrics*, to implement our study. It began with some background questions to get a sense of our participants' experience levels and typical usage patterns. After this, we displayed 5 of 11 alerts (randomly) to each user. After viewing an alert and it's accompanying alert description, we asked users how confident they felt in their ability to resolve the alert on a scale from 1-7, 1 being the least confidence and 7 being the most confident. We also allowed them to write in why they gave the numerical score they chose.
+We used an online survey platform, *Qualtrics*, to implement our study. The survey began with background questions about the participants' experience levels and typical usage patterns. After, we displayed 5 of 11 alerts (randomly) to each user. After viewing an alert and it's accompanying alert description, we asked users how confident they felt in their ability to resolve the alert on a scale from 1-7, 1 being the least confidence and 7 being the most confident. We also allowed them to write in why they gave the numerical score they chose.
 
-Unlike many applications and software, OpenShift is often deployed 'on-premise' so that standard product analytics are not possible to collect. This poses a unique challenge to assessing user behavior in OpenShift. To get around this, we implemented a [first-click test](https://www.usability.gov/how-to-and-tools/methods/first-click-testing.html) where users clicked on a web console overview dashboard screenshot. This allowed us to have some behavioral assessment on their strategy for resolving each alert. 
+Unlike many applications and software, OpenShift is often deployed 'on-premise' so that standard product analytics are not possible to collect. This poses a unique challenge to assessing user behavior in OpenShift. To get around this, we implemented a [first-click test](https://www.usability.gov/how-to-and-tools/methods/first-click-testing.html) where users clicked on a web console overview dashboard screenshot. This allowed us to have some behavioral assessment on their strategy for resolving each alert. This first-click component occurred after each confidence rating with the same alert and allowed for an open response to describe why they clicked the area they did. 
 
 ![](https://github.com/carljpearson/openshift_alerting/blob/master/img/1-KubePodNotReady.png?raw=true)
 
@@ -30,4 +30,9 @@ Unlike many applications and software, OpenShift is often deployed 'on-premise' 
 
 ### Participants 
 
-Most participants
+Participants varied a lot in experience levels, but tended to be intermediate users with a high level of daily use. A fair proportion of users reported no experience, and these responses were excluded from some analyses. 
+
+![](https://github.com/carljpearson/openshift_alerting/blob/master/plots/exp_and_use.png?raw=true)
+
+The bulk of participants' version experience was with 3.x versions, but there were reports of experience with 4.x versions, but
+
