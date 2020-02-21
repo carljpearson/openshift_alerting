@@ -8,7 +8,6 @@ df_long %>%
   psych::describeBy(group = "alert_name") 
 
 
-df_long_mod <- df_long %>% filter(exp != "None")
 
 #confidence model
 mod_conf <- lmerTest::lmer(conf ~ alert_name   + (1|id),
@@ -32,12 +31,4 @@ sjPlot::plot_model(mod_conf_exp,type="int",grid=T,colors = rep(c("#ee0000","#000
 
 ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/mod_conf_exp.png",width = 12,height = 8)
 
-#confidence + region
-
-mod_conf_area <- lmerTest::lmer(conf ~  area + (1|id),
-                                data=df_long_region)
-
-sjPlot::tab_model(mod_conf,mod_conf_area)
-sjPlot::plot_model(mod_conf_area,type="eff") 
-
-ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/mod_conf_exp.png",width = 12,height = 8)
+#

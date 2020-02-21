@@ -34,5 +34,12 @@ Participants varied a lot in experience levels, but tended to be intermediate us
 
 ![](https://github.com/carljpearson/openshift_alerting/blob/master/plots/exp_and_use.png?raw=true)
 
-The bulk of participants' version experience was with 3.x versions, but there were reports of experience with 4.x versions, but
+The bulk of participants' version experience was with 3.x versions, but there were reports of experience with 4.x versions. ![](https://github.com/carljpearson/openshift_alerting/blob/master/plots/vers2.png?raw=true)
 
+27 users did not typically receive alerts, but others received OpenShift alerts across a variety of channels in which they had to respond to the alert in some capacity. The most common was within the web console itself, followed by email, and word-of-mouth. Pagerduty and service tickets were also present but less common.
+
+## Confidence
+
+The confidence ratings separated the alerts into *high confidence* alerts and *low confidence* alerts in general. However, through a linear-mixed model, some diagnostics indicated that the scores in any particular alert varied quite a lot depending on the individual rating their confidence (the intraclass correlation is near 50%). So while in aggregate some alerts leave users feeling more confident, this will heavily depend on user characteristics, such as expertise. 
+
+![](https://raw.githubusercontent.com/carljpearson/openshift_alerting/master/plots/conf_viol.png)

@@ -1,41 +1,79 @@
 #l1 analysis
 
 #expertise
-df %>%
+p.exp <- df %>%
   ggplot(aes(exp,fill=exp)) +
   geom_bar() +
-  geom_text(stat = 'count',aes(label =..count.., vjust = -0.2),size=7) +
+  geom_text(stat = 'count',aes(label =..count.., vjust = -0.2),size=5) +
   ggthemes::theme_tufte(base_family="sans",base_size = 15) +
   scale_fill_brewer(palette = "YlOrRd") +
   labs(y="Count",
        x="Expertise") +
   theme(
-    axis.title.x=element_blank(),
-    axis.text.x= element_text(size=15),
+    axis.text.x= element_text(size=10,angle=45),
     axis.text.y=element_blank(),
     axis.ticks.y=element_blank(),
     legend.position = "none" )
 
-ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/exp.png",bg="transparent",width = 8,height = 6)
+ggsave(p.exp,"/Users/carlpearson/Documents/r_github/openshift_alerting/plots/exp.png",bg="transparent",width = 8,height = 6)
 
 #use
-df %>%
+p.use <- df %>%
   ggplot(aes(use,fill=use)) +
   geom_bar() +
-  geom_text(stat = 'count',aes(label =..count.., vjust = -0.2),size=7) +
+  geom_text(stat = 'count',aes(label =..count.., vjust = -0.2),size=5) +
   ggthemes::theme_tufte(base_family="sans",base_size = 15) +
   labs(y="Count",
        x="Weekly Use") +
   scale_fill_brewer(palette = "YlOrRd") +
   theme(
-    axis.text.x= element_text(size=12),
+    axis.text.x= element_text(size=10,angle=45),
     axis.text.y=element_blank(),
     axis.ticks.y=element_blank(),
     legend.position = "none")
 
-ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/use.png",bg="transparent",width = 8,height = 6)
+ggsave(p.use,"/Users/carlpearson/Documents/r_github/openshift_alerting/plots/use.png",bg="transparent",width = 8,height = 6)
+
+exp_and_use <- gridExtra::grid.arrange(p.exp, p.use, nrow = 1)
+ggsave(exp_and_use,
+       file="/Users/carlpearson/Documents/r_github/openshift_alerting/plots/exp_and_use.png",
+       bg="transparent",
+       width = 10,
+       height = 6,
+       device="png")
 
 #version
+df %>%
+  select(id,contains("vers")) %>%
+  pivot_longer(-id) %>%
+  mutate(name = case_when(
+    name == "vers_1" ~ "3.9 or earlier",
+    name == "vers_2" ~ "3.10",
+    name == "vers_3" ~ "3.11",
+    name == "vers_4" ~ "4.0",
+    name == "vers_5" ~ "4.1",
+    name == "vers_6" ~ "4.2",
+  ),
+  name = factor(name, levels = c("3.9 or earlier","3.10", "3.11","4.0","4.1","4.2")),
+  value = factor(value, levels = c(NA,"Have not used","Used in demo","Little experience","Some experience","Lots of experience"))
+  ) %>%
+  ggplot(aes(name,fill=value)) +
+  geom_bar(position = "stack") +
+  geom_text(stat = 'count',aes(label =..count..,vjust = 1.4),size=4,position = position_stack(),color="#585858") +
+  ggthemes::theme_tufte(base_family="sans",base_size = 15) +
+  labs(y="Count",
+       x="Version",
+       fill="Use") +
+  theme(
+    axis.text.x= element_text(size=15),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank()) +
+  scale_fill_brewer(palette = "YlOrRd") +
+  scale_y_reverse()
+
+ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/vers2.png",bg="transparent",width = 8,height = 6)
+
+#version 2
 df %>%
   select(id,contains("vers")) %>%
   pivot_longer(-id) %>%
@@ -51,9 +89,14 @@ df %>%
   value = factor(value, levels = c("Have not used","Used in demo","Little experience","Some experience","Lots of experience"))
   ) %>%
   na.omit() %>%
-  ggplot(aes(name,fill=value)) +
-  geom_bar(position = "dodge") +
-  geom_text(stat = 'count',aes(label =..count..,vjust = -0.2),size=4,position = position_dodge(width = .9),color="#585858") +
+  group_by(name) %>%
+  mutate(total=n()) %>%
+  group_by(value,name,total) %>%
+  count() %>%
+  mutate(prop=n/total) %>%
+  ggplot(aes(y=prop,x=name,fill=version)) +
+  geom_bar(stat="identity",position = "stack") +
+  geom_text(aes(label = prop),size=4,position = position_stack(),color="#585858") +
   ggthemes::theme_tufte(base_family="sans",base_size = 15) +
   labs(y="Count",
        x="Version",
@@ -494,3 +537,8 @@ df_long %>%
   labs(y="Proportion")
 
 ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/sidebar_clicks.png",width = 10.05,height = 6)
+
+
+
+#vers calc in granular terms
+
