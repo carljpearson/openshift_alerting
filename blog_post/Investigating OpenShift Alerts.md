@@ -44,6 +44,8 @@ The confidence ratings separated the alerts into *high confidence* alerts and *l
 
 ![](https://raw.githubusercontent.com/carljpearson/openshift_alerting/master/plots/conf_viol.png)
 
+Because of the high variation within ratings, it's difficult to point to a certain alert as 'good' or 'bad'. Our qualitative data will help provide more insight here.
+
 ## Click Maps
 
 The behaviors were similar to confidence ratings: responses depended heavily on the user. However, one obvious case was that the 'View Details' link was often the first click.
@@ -54,10 +56,25 @@ This changed somewhat when split out by experience levels, where expert users te
 
 ![](https://github.com/carljpearson/openshift_alerting/blob/master/heatmaps/all_exp.png?raw=true)
 
-While interesting to investigate, click maps are imprecise for parsing out statistical patterns in the click data. The data below splot out the major sections of the web console interface to compare proportions of click behaviors. The alerts `CPUThrottlingHigh`, `KubletDown`, `KubePodCrashLooping`, `KubePodNotReady`, and `MachineRunningWithNoPhase` do not have Status (where the 'View Details' button is located) as the most significantly clicked area. This is inferred where the confidence intervals (gray bars) of the purple Status bar overlap with the confidence intervals of another area. Why might this be the case?  For this we need to dig into the open (write-in) response data.
+While interesting to investigate, click maps are imprecise for parsing out statistical patterns in the click data. The data below splot out the major sections of the web console interface to compare proportions of click behaviors. The alerts `CPUThrottlingHigh`, `KubletDown`, `KubePodCrashLooping`, `KubePodNotReady`, and `MachineRunningWithNoPhase` do not have Status (where the 'View Details' button is located) as the most significantly clicked area. 
 
 ![](https://github.com/carljpearson/openshift_alerting/blob/master/plots/click_area_all.png?raw=true)
 
+This is inferred where the confidence intervals (gray bars) of the purple Status bar overlap with the confidence intervals of another area. The quantitative data gave us a picture of **what** was happening **where**. To see **why**, we needed to dig into the open (write-in) response data.
+
 ## Open Response Data
 
-We collected over 200 comments and thematically coded the responses to uncover any patterns that were present. One major theme that arose in the data was related to participants indicating they knew where they wanted to go and/or what specifically they wanted to resolve. After a bit of backtracking, all of these comments
+We collected 246 comments and thematically coded the responses to uncover any patterns that were present. In one major theme, participants indicated that they knew what resource they were looking for or problem they were trying to solve.
+
+Quote verbatims: 
+
+```I want to see the deployment/deploymentConfig spec to see what the cpu quota setting is set at.```
+
+```I don't need further details, I want to see more info on the specific pods```
+
+After mapping out where the comments came from that fit with this theme, every single comment came from an alert with 'View Details' was significantly less likely to be clicked. These data give some evidence that 'View Details' is the default place to go, *unless* the user already knows what they want to do. This finding is the most crucial and novel peice of information we found. The next steps for our designer is to consider the what the 'View Details' page currently looks like. Does it support a user who does not know where to go next? If not, how can we make the page more informative for those that use it most?
+
+
+
+
+

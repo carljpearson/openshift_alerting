@@ -246,16 +246,18 @@ ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/channel.p
 
 df_long %>%
   ggplot(aes(x=alert_name,y=conf ,fill=alert_name)) +
-  geom_violin()+
+  geom_violin(alpha=.5,color="white")+
+  stat_summary(fun=mean,size=1) +
   ggthemes::theme_tufte(base_family = "sans",base_size = 15) +
   theme(
     legend.position = "none",
     axis.title.y = element_blank()
   ) + 
   coord_flip(ylim=c(1,7)) +
-  labs(y="Confidence")
+  labs(y="Confidence",
+       subtitle = "Point = mean, line = SD, color = response distributions")
 
-ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/conf_viol.png",width = 12,height = 8)
+ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/conf_viol2.png",width = 12,height = 8)
 
 
 #plotting heatmaps
@@ -540,5 +542,8 @@ ggsave("/Users/carlpearson/Documents/r_github/openshift_alerting/plots/sidebar_c
 
 
 
-#vers calc in granular terms
+#conf with error
+df_long %>%
+  group_by(alert_name) %>%
+  summarise(conf_avg=mean(conf),conf_sd=sd(conf),se=sd*sqrt(nrow(dflo))*1.96)
 
