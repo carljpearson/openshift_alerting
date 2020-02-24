@@ -90,19 +90,25 @@ In one major theme, "*knowing where to go*", participants indicated that they kn
 
 ```I don't need further details, I want to see more info on the specific pods```
 
-After mapping out where the comments came from that fit with this theme, every single comment came from one of these alerts where 'View Details' was significantly less likely to be clicked. These data give some evidence that 'View Details' is the default place to go, *unless* the user already knows what they want to do. The user that goes to 'View Details' is likely to be someone who does not know where they want to go next to resolve the alert. This novel insight gave next steps to consider in our design the of 'View Details' page. What does the 'View Details' page currently looks like? Does it support a user who does not know where to go next? If not, how can we make the page more informative for those that use it most? Another theme, "*information gathering*" indicated that users who didn't have enough information would resort to web searches, documentation searches, or support. Perhaps this is where a user who doesn't have the 'View Details' page meeting there needs would end up.
+After mapping out where the comments came from that fit with this theme, every single comment came from one of these alerts where 'View Details' was significantly less likely to be clicked. These data give some evidence that 'View Details' is the default place to go, *unless* the user already knows what they want to do. The user that goes to 'View Details' is likely to be someone who does not know where they want to go next to resolve the alert. This novel insight gave next steps to consider in our design the of 'View Details' page. What does the 'View Details' page currently looks like? 
 
-*Verbatim*
+*'View Details' page*
 
-```I have not experienced this yet.  However, I generally can find answers through access.redhat.com, generally speaking```
+![](https://github.com/carljpearson/openshift_alerting/blob/master/img/view_details.png?raw=true)
 
-If we could create a more robust path for users to resolve alerts within the interface, this could reduce to amount of support cases related to certain problematic alerts. Finally, another theme, "*resolution strategies*", gave evidence that logs or events were key to those who had a plan to resolve the alert. 
+Does this support a user who does not know where to go next? If not, how can we make the page more informative for those that use it most? The theme, "*resolution strategies*", gave evidence that logs or events were key to those who had a plan to resolve the alert. 
 
 *Verbatim*
 
 ```although i have not debugged this issue from the web console, i would probably try to locate the api server pods and then inspect their logs as a first step.```
 
-This could be a hint at what experts do and what novices who need information need to see on the 'View Details' page. 
+This could be a hint at what experts do and what information novices need to see on the 'View Details' page. Finally, the theme, "*information gathering*" indicated that users who didn't have enough information would resort to web searches, documentation searches, or support. Perhaps this is where a user who doesn't have the 'View Details' page meeting their needs would end up.
+
+*Verbatim*
+
+```I have not experienced this yet.  However, I generally can find answers through access.redhat.com, generally speaking```
+
+If we could create a more robust path for users to resolve alerts within the interface, this could reduce to amount of support cases related to certain problematic alerts. 
 
 # Conclusions
 
