@@ -116,7 +116,7 @@ Alert confidence varies widely among users, but it's often related to lack of ex
 
 ## Appendix
 
-Alerts used in this study
+### Alerts used in this study
 
 - **KubePodNotReady** Pod myproject/frontend-1 has been in a non-ready state for longer than 15 minutes.
 - **KubeDeploymentReplicasMismatch Deployment** myproject/frontend-1 has not matched the expected number of replicas for longer than 15 minutes. 
@@ -130,7 +130,9 @@ Alerts used in this study
 - **etcdHighCommitDurations** etcd cluster "etcd": 99th percentile commit durations 100s on etcd instance cluster-health.
 - **ClusterOperatorDegraded** Cluster operator insights has been degraded for 10 mins. Operator is degraded because Unable to report: gateway server reported unexpected error code: 415, and cluster upgrades will be unstable.
 
+### Analysis
 
+Plots and quanititative analysis was conducted in R using `tidyverse` and `lmerTest`. The repository for those analyses can be found [here](https://github.com/carljpearson/openshift_alerting).
 
 
 
